@@ -307,6 +307,46 @@
   .snapshot .row:nth-child(4) dd{color:#ddd6fe;}
   .snapshot .row:nth-child(5) dd{color:#a7f3d0;}
   .snapshot .row:nth-child(6) dd{color:#fbcfe8;}
+  /* ---- 3D icon treatment ---- */
+  .logo-strip .row, .aws-grid{}
+  .logo-strip .tool{
+    width:52px; height:52px; border-radius:14px; border:1px solid rgba(255,255,255,.14);
+    background:linear-gradient(145deg,rgba(255,255,255,.16),rgba(255,255,255,.03) 45%,rgba(0,0,0,.25));
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.35), inset 0 -3px 6px rgba(0,0,0,.45),
+               0 1px 0 #1c2742, 0 2px 0 #18223a, 0 3px 0 #141d33, 0 4px 0 #10182b, 0 12px 18px -6px rgba(0,0,0,.7);
+    transform-style:preserve-3d; transition:transform .18s ease-out, box-shadow .2s;
+  }
+  .logo-strip .tool img{width:30px; height:30px; transform:translateZ(18px); filter:drop-shadow(0 3px 2px rgba(0,0,0,.55)) drop-shadow(0 8px 8px rgba(0,0,0,.35));}
+  .logo-strip .tool:hover{border-color:rgba(255,255,255,.3);}
+
+  .aws-tile{
+    position:relative; transform-style:preserve-3d; transition:transform .18s ease-out, box-shadow .2s, border-color .2s;
+    background:linear-gradient(150deg,rgba(255,255,255,.09),rgba(255,255,255,.015) 50%,rgba(0,0,0,.25));
+    border:1px solid rgba(255,255,255,.12);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.25), inset 0 -4px 8px rgba(0,0,0,.4),
+               0 1px 0 #1a2540, 0 2px 0 #162039, 0 3px 0 #121b31, 0 4px 0 #0e1628, 0 14px 22px -8px rgba(0,0,0,.75);
+  }
+  .aws-tile img{transform:translateZ(34px); filter:drop-shadow(0 4px 3px rgba(0,0,0,.55)) drop-shadow(0 10px 10px rgba(0,0,0,.4)); transition:transform .18s;}
+  .aws-tile span{transform:translateZ(14px);}
+  .aws-tile:hover{transform:translateY(-3px);}
+
+  .chip .ic{width:18px; height:18px; filter:drop-shadow(0 2px 1.5px rgba(0,0,0,.65)) drop-shadow(0 4px 4px rgba(0,0,0,.3)); transition:transform .15s;}
+  .chip:hover .ic{transform:translateY(-2px) scale(1.12);}
+  .chip{box-shadow:inset 0 1px 0 rgba(255,255,255,.12), 0 2px 0 rgba(0,0,0,.45);}
+  @media (prefers-reduced-motion: reduce){ .logo-strip .tool, .aws-tile{transition:none;} }
+  /* names under hero logos */
+  .logo-strip .row{gap:18px 14px;}
+  .logo-strip .tool, .logo-strip .tool:hover{width:76px; height:auto; border:0; background:none; box-shadow:none; border-radius:0; display:flex; flex-direction:column; align-items:center; gap:12px; transform:none;}
+  .logo-strip .tool .box{
+    width:52px; height:52px; border-radius:14px; border:1px solid rgba(255,255,255,.14); display:grid; place-items:center;
+    background:linear-gradient(145deg,rgba(255,255,255,.16),rgba(255,255,255,.03) 45%,rgba(0,0,0,.25));
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.35), inset 0 -3px 6px rgba(0,0,0,.45),
+               0 1px 0 #1c2742, 0 2px 0 #18223a, 0 3px 0 #141d33, 0 4px 0 #10182b, 0 12px 18px -6px rgba(0,0,0,.7);
+    transform-style:preserve-3d; transition:transform .18s ease-out;
+  }
+  .logo-strip .tool:hover .box{border-color:rgba(255,255,255,.3);}
+  .logo-strip .tool .box img{width:30px; height:30px; transform:translateZ(18px); filter:drop-shadow(0 3px 2px rgba(0,0,0,.55)) drop-shadow(0 8px 8px rgba(0,0,0,.35));}
+  .logo-strip .tool .name{font-size:12px; line-height:1.25; color:var(--text-2); text-align:center; font-weight:500;}
 </style>
 </head>
 <body>
@@ -840,7 +880,10 @@
   const logoRow=document.getElementById('logoRow');
   [['aws','AWS'],['kubernetes','Kubernetes'],['terraform','Terraform'],['docker','Docker'],['argocd','Argo CD'],['githubactions','GitHub Actions'],['jenkins','Jenkins'],['gitlab','GitLab'],['ansible','Ansible'],['prometheus','Prometheus'],['grafana','Grafana'],['helm','Helm']].forEach(([k,n])=>{
     const d=document.createElement('div'); d.className='tool'; d.title=n;
-    const im=document.createElement('img'); im.src=ICONS[k]; im.alt=n; d.appendChild(im); logoRow.appendChild(d);
+    const box=document.createElement('div'); box.className='box';
+    const im=document.createElement('img'); im.src=ICONS[k]; im.alt=''; box.appendChild(im);
+    const nm=document.createElement('span'); nm.className='name'; nm.textContent=n;
+    d.appendChild(box); d.appendChild(nm); logoRow.appendChild(d);
   });
 
   // Delivery flow tabs
@@ -902,6 +945,17 @@
   if (RESUME_BASE64) {
     resumeBtn.href = 'data:application/pdf;base64,' + RESUME_BASE64;
     resumeBtn.hidden = false;
+  }
+  // 3D tilt on icon tiles
+  if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    document.querySelectorAll('.logo-strip .tool .box, .aws-tile').forEach(el=>{
+      el.addEventListener('mousemove', e=>{
+        const r=el.getBoundingClientRect();
+        const x=(e.clientX-r.left)/r.width-.5, y=(e.clientY-r.top)/r.height-.5;
+        el.style.transform='perspective(600px) rotateX('+(-y*22)+'deg) rotateY('+(x*22)+'deg) translateY(-3px)';
+      });
+      el.addEventListener('mouseleave', ()=>{ el.style.transform=''; });
+    });
   }
 </script>
 </body>
